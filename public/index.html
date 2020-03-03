@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>File upload example</title>
+  </head>
+  <body>
+    <input type="file">
+    <p></p>
+    <script>
+      const input = document.querySelector('input');
+      const p = document.querySelector('p');
+
+      input.onchange = e => {
+        e.preventDefault();
+
+        const formData = new FormData();
+        formData.append('file', input.files[0]);
+
+        upload('/upload', formData, (progress) => {
+          p.textContent = `Uploading ${Math.round(progress * 100)} %...`;
+        }, () => {
+          p.textContent = 'Uploaded!';
+
+          input.value = '';
+        });
+      };
+
+      function upload (url, data, onprogress, cb) {
+        const req = new XMLHttpRequest();
+
+        req.open('POST', url, true);
+
+        req.onprogress = (e) => {
+          onprogress(e.loaded / e.total);          
+        }
+
+        req.onload = () => {
+          if (req.status !== 200) {
+            cb();
+          } else {
+            cb(req.status, req.responseText);
+          }
+        }
+
+        req.onerror = err => {
+          cb(new Error(err));
+        }
+
+        req.send(data);
+      }
+    </script>
+  </body>
+</html>
